@@ -1,26 +1,56 @@
 from django.test import TestCase
 from django.utils import timezone
-from todo.models import Task
+from django.db import models
 from datetime import datetime
 
+# モデル定義
+class Task(models.Model):
+    title = models.CharField(max_length=100)
+    posted_at = models.DateTimeField(default=timezone.now)
+    completed = models.BooleanField(default=False)
+    due_at = models.DateTimeField(null=True, blank=True)
 
-# Create your tests here.
+    def is_overdue(self, dt):
+        if self.due_at is None:
+            return False
+        return self.due_at < dt
 
+# テストケース
 class TaskModelTestCase(TestCase):
-    def test_task_creation(self):
-      due= timezone.make_aware(datetime(2024,6,30,23,59,59))
-      task=Task(title='task1',due_at=due)
-      task.save()
-      task=Task.objects.get(pk=task.pk)
-      self.assertEqual(task.title, 'task1')
-      self.assertEqual(task.due_at, due)
-      self.assertFalse(task.completed)
-   
+
+    def test_is_overdue_future(self):
+        due = timezone.make_aware(datetime(2024, 6, 30, 23, 59, 59))
+        current = timezone.make_aware(datetime(2024, 6, 30, 0, 0, 0))
+        task = Task(title='task1', due_at=due)
+        task.save()
+        self.assertFalse(task.is_overdue(current))
+
+    def test_is_overdue_past(self):
+        due = timezone.make_aware(datetime(2024, 6, 30, 23, 59, 59))
+        current = timezone.make_aware(datetime(2024, 7, 1, 0, 0, 0))
+        task = Task(title='task2', due_at=due)
+        task.save()
+        self.assertTrue(task.is_overdue(current))
+
+    def test_is_overdue_none(self):
+        current = timezone.make_aware(datetime(2024, 7, 1, 0, 0, 0))
+        task = Task(title='task3', due_at=None)
+        task.save()
+        self.assertFalse(task.is_overdue(current))
+
+    def test_create_task1(self):
+        due = timezone.make_aware(datetime(2024, 6, 30, 23, 59, 59))
+        task = Task(title='task1', due_at=due)
+        task.save()
+        task = Task.objects.get(pk=task.pk)
+        self.assertEqual(task.title, 'task1')
+        self.assertEqual(task.due_at, due)
+        self.assertFalse(task.completed)
+
     def test_create_task2(self):
         task = Task(title='task2')
         task.save()
         task = Task.objects.get(pk=task.pk)
         self.assertEqual(task.title, 'task2')
-        self.assertIsNone(task.due_at,None)
+        self.assertIsNone(task.due_at)
         self.assertFalse(task.completed)
- 
