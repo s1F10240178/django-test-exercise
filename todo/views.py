@@ -18,7 +18,12 @@ def index(request):
         task.save()
         return redirect('index')   
 
-    tasks = Task.objects.all()
+    
+    if request.GET.get('order') == 'due':
+        tasks = Task.objects.order_by('due_at')
+    else:
+        tasks = Task.objects.order_by('-posted_at')
+
     context = {
         'tasks': tasks
     }
