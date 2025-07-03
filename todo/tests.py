@@ -3,7 +3,6 @@ from django.utils import timezone
 from django.db import models
 from datetime import datetime
 
-# モデル定義
 class Task(models.Model):
     title = models.CharField(max_length=100)
     posted_at = models.DateTimeField(default=timezone.now)
@@ -15,7 +14,7 @@ class Task(models.Model):
             return False
         return self.due_at < dt
 
-# テストケース
+
 class TaskModelTestCase(TestCase):
 
     def test_is_overdue_future(self):
