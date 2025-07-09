@@ -8,3 +8,10 @@ class Task(models.Model):
     completed = models.BooleanField(default=False)
     due_at= models.DateTimeField(null=True, blank=True)
     
+    def is_overdue(self, now=None):
+        
+        if self.due_at is None:
+            return False
+        if now is None:
+            now = timezone.now()
+        return self.due_at < now
